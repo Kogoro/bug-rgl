@@ -1,30 +1,50 @@
-'use client';
+"use client";
 
-import { ComponentPropsWithRef, ComponentPropsWithoutRef, MouseEventHandler, useRef, useState } from 'react';
-import React from 'react';
+import type { CSSProperties, MouseEventHandler, ReactNode, Ref } from "react";
 
-type TextWidgetProps = {isLocked?:boolean, onLock?: MouseEventHandler};
+type TextWidgetProps = {
+  className?: string;
+  style?: CSSProperties;
+  onMouseDown?: MouseEventHandler<HTMLDivElement>;
+  onMouseUp?: MouseEventHandler<HTMLDivElement>;
+  onTouchEnd?: React.TouchEventHandler<HTMLDivElement>;
+  children?: ReactNode;
+  isLocked?: boolean;
+  onLock?: MouseEventHandler<HTMLButtonElement>;
+  ref?: Ref<HTMLDivElement>;
+};
 
-const TextWidget = React.forwardRef((props: ComponentPropsWithRef<"div"> & TextWidgetProps, ref: React.ForwardedRef<HTMLDivElement>) => {
-    let { isLocked=false, style, className, onMouseDown, onMouseUp, onTouchEnd, children, onLock=null} = props;
-
-	function handleLock(event: React.MouseEvent<Element, MouseEvent>) : void {
-        if (onLock) {
-			onLock(event)
-		}
-	}
-
-    return (
-		<div style={{...style}} ref={ref} onMouseDown={onMouseDown} onMouseUp={onMouseUp} onTouchEnd={onTouchEnd} className={className}>
-			<div className="bg-slate-400 h-full w-full flex flex-col">
-				<span>Is locked: {isLocked? "true":"false"}</span>
-                <button className='border-t-neutral-500 bg-slate-300'
-                onClick={handleLock}
-                >Lock</button>
-				{children}
-			</div>
-        </div>
-	);
-});
-TextWidget.displayName = "TextWidget";
-export default TextWidget;
+export default function TextWidget({
+  className,
+  style,
+  onMouseDown,
+  onMouseUp,
+  onTouchEnd,
+  children,
+  isLocked = false,
+  onLock,
+  ref,
+}: TextWidgetProps) {
+  return (
+    <div
+      ref={ref}
+      style={style}
+      className={className}
+      onMouseDown={onMouseDown}
+      onMouseUp={onMouseUp}
+      onTouchEnd={onTouchEnd}
+    >
+      <div className="flex h-full w-full flex-col bg-slate-400 p-2">
+        <span>Is locked: {isLocked ? "true" : "false"}</span>
+        <button
+          type="button"
+          className="mt-2 border border-slate-500 bg-[var(--accent-muted)] px-2 py-1"
+          onClick={onLock}
+        >
+          Lock
+        </button>
+        {children}
+      </div>
+    </div>
+  );
+}

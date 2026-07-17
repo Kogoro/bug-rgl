@@ -1,115 +1,100 @@
 "use client";
 
-import { MouseEventHandler, useRef, useState } from "react";
-import ReactGridLayout, { Layout, WidthProvider } from "react-grid-layout";
+import type { Layout, LayoutItem } from "react-grid-layout";
+import ReactGridLayout, {
+  useContainerWidth,
+  verticalCompactor,
+} from "react-grid-layout";
+import { useState } from "react";
 import TextWidget from "./TextWidget";
 
-var gridItems: Layout[] = [
-	{
-		i: "n0",
-		x: 0,
-		y: Infinity, // puts it at the bottom
-		w: 4,
-		h: 4,
-		static: false,
-	},
+const INITIAL_LAYOUT: LayoutItem[] = [
+  {
+    i: "n0",
+    x: 0,
+    y: Infinity,
+    w: 4,
+    h: 4,
+    static: false,
+  },
 ];
-const DecoratedReactGridLayout = WidthProvider(ReactGridLayout);
-var ref: React.RefObject<HTMLDivElement>;
 
 export default function Home() {
-	var ref = useRef<HTMLDivElement>(null);
+  const { width, containerRef, mounted } = useContainerWidth();
+  const [edit, setEdit] = useState(false);
+  const [layout, setLayout] = useState<LayoutItem[]>(INITIAL_LAYOUT);
 
-	const [edit, setEdit] = useState(false);
-	const [grid, setGrid] = useState(gridItems);
-	const [counter, setCounter] = useState(1);
+  function addElement() {
+    setLayout((items) => {
+      const nextId = items.length;
+      return [
+        ...items,
+        {
+          i: `n${nextId}`,
+          x: 0,
+          y: Infinity,
+          w: 4,
+          h: 4,
+          static: false,
+        },
+      ];
+    });
+  }
 
-	function addElement() {
-		let el: Layout;
-		el = {
-			i: "n" + counter + 1,
-			x: 0,
-			y: Infinity, // puts it at the bottom
-			w: 4,
-			h: 4,
-			static: false,
-		};
-		setCounter(counter + 1);
-		setGrid(grid.concat([el]));
-	}
+  function handleLayoutChange(nextLayout: Layout) {
+    setLayout([...nextLayout]);
+  }
 
-	function changeLayoutPosition(newLayouts: Layout[]): void {
-		grid.forEach((el) => {
-			newLayouts.forEach((layout) => {
-				if (el.i == layout.i) {
-					el.x = layout.x;
-					el.y = layout.y;
-					el.w = layout.w;
-					el.h = layout.h;
-				}
-			});
-		});
-		setGrid(grid);
-	}
+  function toggleLock(id: string) {
+    setLayout((items) =>
+      items.map((item) =>
+        item.i === id ? { ...item, static: !item.static } : item,
+      ),
+    );
+  }
 
-	function createWidget(el: Layout, onLock: MouseEventHandler): any {
-		return (
-			<TextWidget
-				key={el.i}
-				data-grid={el}
-				ref={ref}
-				onLock={(e) => {
-					onLock(e);
-				}}
-				isLocked={el.static}
-			></TextWidget>
-		);
-	}
+  return (
+    <main className="min-h-screen p-4 font-[family-name:var(--font-geist-sans)]">
+      <div className="mb-4 flex flex-row items-center gap-3">
+        <span>Edit mode is {edit ? "enabled" : "disabled"}</span>
+        <button
+          type="button"
+          className="border border-slate-400 bg-[var(--accent-muted)] px-3 py-1"
+          onClick={() => setEdit((value) => !value)}
+        >
+          Toggle Edit
+        </button>
+        <button
+          type="button"
+          className="border border-slate-400 bg-[var(--accent-muted)] px-3 py-1"
+          onClick={addElement}
+        >
+          Add
+        </button>
+      </div>
 
-	function toggleLock(el: Layout): void {
-		grid.forEach((gel) => {
-			if (gel.i == el.i) {
-				gel.static = !el.static;
-			}
-			setGrid(grid);
-		});
-	}
-
-	return (
-		<main className="">
-			<div className="flex flex-row gap-3 pb-4">
-				<span>Edit Mode is {edit ? "enabled" : "disabled"}</span>
-				<button className="border-t-neutral-500 bg-slate-300" onClick={() => setEdit(!edit)}>
-					Toggle Edit
-				</button>
-				<button
-					className="border-t-neutral-500 bg-slate-300"
-					onClick={() => addElement()}>
-					Add
-				</button>
-			</div>
-			<DecoratedReactGridLayout
-				className="layout min-h-screen bg-white"
-				cols={20}
-				rowHeight={10}
-				maxRows={100}
-				compactType={"vertical"}
-				measureBeforeMount={false}
-				isDraggable={edit}
-				isResizable={edit}
-				isBounded={false}
-				allowOverlap={false}
-				onLayoutChange={(newLayouts: Layout[]) => {
-					changeLayoutPosition(newLayouts);
-				}}
-				innerRef={ref}
-			>
-				{grid.map((el: Layout) =>
-					createWidget(el, (e) => {
-						toggleLock(el);
-					})
-				)}
-			</DecoratedReactGridLayout>
-		</main>
-	);
+      <div ref={containerRef} className="min-h-screen bg-[var(--surface)]">
+        {mounted && (
+          <ReactGridLayout
+            className="layout"
+            width={width}
+            layout={layout}
+            gridConfig={{ cols: 20, rowHeight: 10, maxRows: 100 }}
+            dragConfig={{ enabled: edit, bounded: false }}
+            resizeConfig={{ enabled: edit }}
+            compactor={verticalCompactor}
+            onLayoutChange={handleLayoutChange}
+          >
+            {layout.map((item) => (
+              <TextWidget
+                key={item.i}
+                isLocked={Boolean(item.static)}
+                onLock={() => toggleLock(item.i)}
+              />
+            ))}
+          </ReactGridLayout>
+        )}
+      </div>
+    </main>
+  );
 }
