@@ -39,6 +39,41 @@ export interface WidgetContext<TConfig> {
 export type WidgetComponent<TConfig> = ComponentType<WidgetContext<TConfig>>;
 
 /**
+ * A single, declarative configuration field. The dashboard renders a generic
+ * settings form from these fields, populating each control with the widget
+ * instance's current config value — so widgets never hand-roll their own
+ * settings UI.
+ */
+export type WidgetConfigField =
+  | { key: string; label: string; description?: string; type: "text"; placeholder?: string }
+  | {
+      key: string;
+      label: string;
+      description?: string;
+      type: "number";
+      min?: number;
+      max?: number;
+      step?: number;
+    }
+  | { key: string; label: string; description?: string; type: "boolean" }
+  | {
+      key: string;
+      label: string;
+      description?: string;
+      type: "select";
+      options: readonly { label: string; value: string }[];
+    };
+
+/**
+ * A widget's config schema. Keys are constrained to the widget's own config
+ * keys at authoring time (via {@link defineWidget}), while the rendered form
+ * consumes the erased {@link WidgetConfigField}.
+ */
+export type WidgetConfigSchema<TConfig> = ReadonlyArray<
+  WidgetConfigField & { key: Extract<keyof TConfig, string> }
+>;
+
+/**
  * The blueprint for a kind of widget. Authored via {@link defineWidget} so the
  * config type is inferred and checked at the authoring site.
  */
@@ -57,6 +92,12 @@ export interface WidgetDefinition<TConfig> {
   readonly defaultConfig: TConfig;
   /** Renders a single instance of this widget. */
   readonly component: WidgetComponent<TConfig>;
+  /**
+   * Optional declarative configuration schema. When present, the widget frame
+   * shows a settings action that opens a form populated from the instance's
+   * current config.
+   */
+  readonly configSchema?: WidgetConfigSchema<TConfig>;
   /**
    * Optional guard that coerces/validates persisted JSON back into a valid
    * config. Protects against schema drift in the persisted dashboard.

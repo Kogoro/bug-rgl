@@ -10,6 +10,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
+import { WidgetSettingsDialog } from "./widget-settings-dialog";
 import type { AnyWidgetDefinition, DashboardItem } from "./types";
 
 /**
@@ -62,6 +63,11 @@ export function WidgetFrame({
 
           {editing && (
             <div className="no-drag flex items-center gap-1">
+              <WidgetSettingsDialog
+                definition={definition}
+                config={item.config as Record<string, unknown>}
+                onChange={onUpdateConfig}
+              />
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button
