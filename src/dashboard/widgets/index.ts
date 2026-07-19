@@ -19,11 +19,24 @@ export const builtInWidgets: readonly AnyWidgetDefinition[] = [
   todoWidget,
 ];
 
-let registered = false;
+// Authoring guard: two built-ins must never share a `type`.
+const seenTypes = new Set<string>();
+for (const widget of builtInWidgets) {
+  if (seenTypes.has(widget.type)) {
+    throw new Error(`Duplicate built-in widget type "${widget.type}".`);
+  }
+  seenTypes.add(widget.type);
+}
 
-/** Idempotently register the built-in widgets into the shared registry. */
+/**
+ * Idempotently register the built-in widgets into the shared registry. Safe to
+ * call repeatedly and across HMR re-evaluations: types already present in the
+ * (persistent) registry singleton are skipped rather than re-registered.
+ */
 export function registerBuiltInWidgets(): void {
-  if (registered) return;
-  widgetRegistry.registerAll(builtInWidgets);
-  registered = true;
+  for (const widget of builtInWidgets) {
+    if (!widgetRegistry.has(widget.type)) {
+      widgetRegistry.register(widget);
+    }
+  }
 }
