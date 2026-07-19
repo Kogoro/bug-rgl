@@ -1,6 +1,6 @@
 "use client";
 
-import type { CSSProperties, ReactNode, Ref } from "react";
+import type { ComponentPropsWithRef } from "react";
 import { GripVertical, Lock, LockOpen, Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -12,16 +12,14 @@ import {
 import { cn } from "@/lib/utils";
 import type { AnyWidgetDefinition, DashboardItem } from "./types";
 
-interface WidgetFrameProps {
-  /** Injected by react-grid-layout (positioning class). */
-  className?: string;
-  /** Injected by react-grid-layout (absolute position/size). */
-  style?: CSSProperties;
-  /** Injected by react-grid-layout (the resize handle element). */
-  children?: ReactNode;
-  /** Injected by react-grid-layout (root node ref for dragging). */
-  ref?: Ref<HTMLDivElement>;
-
+/**
+ * `ComponentPropsWithRef<"div">` captures everything react-grid-layout injects
+ * into a grid item child via `cloneElement` and its Draggable/Resizable
+ * wrappers: `ref`, `className`, `style`, `children` (the resize handle) and,
+ * crucially, `onMouseDown` / `onMouseUp` / `onTouchEnd`. These handlers are how
+ * dragging is initiated, so the frame MUST forward them to the root node.
+ */
+interface WidgetFrameProps extends ComponentPropsWithRef<"div"> {
   definition: AnyWidgetDefinition;
   item: DashboardItem;
   editing: boolean;
@@ -32,10 +30,6 @@ interface WidgetFrameProps {
 }
 
 export function WidgetFrame({
-  className,
-  style,
-  children,
-  ref,
   definition,
   item,
   editing,
@@ -43,12 +37,14 @@ export function WidgetFrame({
   onToggleLock,
   onRemove,
   onUpdateConfig,
+  children,
+  ...gridItemProps
 }: WidgetFrameProps) {
   const Icon = definition.icon;
   const WidgetComponent = definition.component;
 
   return (
-    <div ref={ref} style={style} className={className}>
+    <div {...gridItemProps}>
       <div className="flex h-full flex-col overflow-hidden rounded-xl border bg-card text-card-foreground shadow-sm">
         <div
           className={cn(
