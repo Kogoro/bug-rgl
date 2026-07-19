@@ -28,6 +28,7 @@ interface WidgetFrameProps extends ComponentPropsWithRef<"div"> {
   onToggleLock: () => void;
   onRemove: () => void;
   onUpdateConfig: (patch: object) => void;
+  onUpdateMeta: (patch: { title?: string; subtitle?: string }) => void;
 }
 
 export function WidgetFrame({
@@ -38,37 +39,54 @@ export function WidgetFrame({
   onToggleLock,
   onRemove,
   onUpdateConfig,
+  onUpdateMeta,
   children,
   ...gridItemProps
 }: WidgetFrameProps) {
   const Icon = definition.icon;
   const WidgetComponent = definition.component;
 
+  const title = item.title?.trim();
+  const subtitle = item.subtitle?.trim();
+  const hasTitle = Boolean(title);
+  // Outside edit mode the header only appears when a title is configured; in
+  // edit mode it is always shown so drag/settings/lock/remove stay reachable.
+  const showHeader = editing || hasTitle;
+
   return (
     <div {...gridItemProps}>
       <div className="flex h-full flex-col overflow-hidden rounded-xl border bg-card text-card-foreground shadow-sm">
-        <div
-          className={cn(
-            "widget-drag-handle flex items-center gap-2 border-b px-3 py-2",
-            editing ? "cursor-move select-none" : "cursor-default",
-          )}
-        >
-          {editing && (
-            <GripVertical className="size-4 shrink-0 text-muted-foreground" />
-          )}
-          <Icon className="size-4 shrink-0 text-muted-foreground" />
-          <span className="flex-1 truncate text-sm font-medium">
-            {definition.name}
-          </span>
+        {showHeader && (
+          <div
+            className={cn(
+              "widget-drag-handle flex items-center gap-2 border-b px-3 py-2",
+              editing ? "cursor-move select-none" : "cursor-default",
+            )}
+          >
+            {editing && (
+              <GripVertical className="size-4 shrink-0 text-muted-foreground" />
+            )}
+            <Icon className="size-4 shrink-0 text-muted-foreground" />
+            <div className="flex min-w-0 flex-1 flex-col">
+              <span className="truncate text-sm font-medium leading-tight">
+                {title || definition.name}
+              </span>
+              {subtitle && (
+                <span className="truncate text-xs leading-tight text-muted-foreground">
+                  {subtitle}
+                </span>
+              )}
+            </div>
 
-          {editing && (
-            <div className="no-drag flex items-center gap-1">
-              <WidgetSettingsDialog
-                definition={definition}
-                config={item.config as Record<string, unknown>}
-                onChange={onUpdateConfig}
-              />
-              <Tooltip>
+            {editing && (
+              <div className="no-drag flex items-center gap-1">
+                <WidgetSettingsDialog
+                  definition={definition}
+                  item={item}
+                  onConfigChange={onUpdateConfig}
+                  onMetaChange={onUpdateMeta}
+                />
+                <Tooltip>
                 <TooltipTrigger asChild>
                   <Button
                     variant="ghost"
@@ -104,9 +122,10 @@ export function WidgetFrame({
                 </TooltipTrigger>
                 <TooltipContent>Remove</TooltipContent>
               </Tooltip>
-            </div>
-          )}
-        </div>
+              </div>
+            )}
+          </div>
+        )}
 
         <div className="min-h-0 flex-1 overflow-auto p-3">
           <WidgetComponent

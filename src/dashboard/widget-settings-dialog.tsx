@@ -21,29 +21,38 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
-import type { AnyWidgetDefinition, WidgetConfigField } from "./types";
+import type {
+  AnyWidgetDefinition,
+  DashboardItem,
+  WidgetConfigField,
+} from "./types";
 
 interface WidgetSettingsDialogProps {
   definition: AnyWidgetDefinition;
-  config: Record<string, unknown>;
-  onChange: (patch: Record<string, unknown>) => void;
+  item: DashboardItem;
+  /** Update the widget's own configuration (schema-driven). */
+  onConfigChange: (patch: Record<string, unknown>) => void;
+  /** Update the frame-level title/subtitle. */
+  onMetaChange: (patch: { title?: string; subtitle?: string }) => void;
 }
 
 /**
- * A generic, registry-driven settings form. It reads `definition.configSchema`,
- * renders a control per field, and populates each with the instance's current
- * value. Edits are written straight back via `onChange`. Returns `null` for
- * widgets that declare no schema, so only configurable widgets show the action.
+ * The per-widget settings dialog. Every widget can set a frame-level title and
+ * subtitle (which control the header/title bar), and widgets that declare a
+ * `configSchema` also get a form populated from their current config. All
+ * controls are pre-filled from the instance's current values.
  */
 export function WidgetSettingsDialog({
   definition,
-  config,
-  onChange,
+  item,
+  onConfigChange,
+  onMetaChange,
 }: WidgetSettingsDialogProps) {
   const [open, setOpen] = useState(false);
   const fields = definition.configSchema ?? [];
-  if (fields.length === 0) return null;
+  const config = item.config as Record<string, unknown>;
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -64,15 +73,47 @@ export function WidgetSettingsDialog({
             Configure this widget. Changes apply immediately.
           </DialogDescription>
         </DialogHeader>
+
         <div className="grid gap-4 py-2">
-          {fields.map((field) => (
-            <WidgetConfigControl
-              key={field.key}
-              field={field}
-              value={config[field.key]}
-              onChange={(value) => onChange({ [field.key]: value })}
+          <div className="grid gap-1.5">
+            <Label htmlFor="widget-title">Title</Label>
+            <Input
+              id="widget-title"
+              value={item.title ?? ""}
+              placeholder={`e.g. ${definition.name}`}
+              onChange={(event) => onMetaChange({ title: event.target.value })}
             />
-          ))}
+            <p className="text-xs text-muted-foreground">
+              Shown as the header. Leave empty to hide the header when not
+              editing.
+            </p>
+          </div>
+
+          <div className="grid gap-1.5">
+            <Label htmlFor="widget-subtitle">Subtitle</Label>
+            <Input
+              id="widget-subtitle"
+              value={item.subtitle ?? ""}
+              placeholder="Optional"
+              onChange={(event) =>
+                onMetaChange({ subtitle: event.target.value })
+              }
+            />
+          </div>
+
+          {fields.length > 0 && (
+            <>
+              <Separator />
+              {fields.map((field) => (
+                <WidgetConfigControl
+                  key={field.key}
+                  field={field}
+                  value={config[field.key]}
+                  onChange={(value) => onConfigChange({ [field.key]: value })}
+                />
+              ))}
+            </>
+          )}
         </div>
       </DialogContent>
     </Dialog>

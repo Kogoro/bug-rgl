@@ -53,6 +53,7 @@ export interface DashboardApi {
   toggleLock: (id: string) => void;
   isLocked: (id: string) => boolean;
   updateConfig: (id: string, patch: object) => void;
+  updateItemMeta: (id: string, patch: { title?: string; subtitle?: string }) => void;
   onLayoutChange: (next: Layout) => void;
   resetDashboard: () => void;
 }
@@ -78,7 +79,12 @@ export function useDashboard(): DashboardApi {
           const config = definition.migrateConfig
             ? definition.migrateConfig(item.config)
             : item.config;
-          return { ...item, config };
+          return {
+            ...item,
+            config,
+            title: typeof item.title === "string" ? item.title : undefined,
+            subtitle: typeof item.subtitle === "string" ? item.subtitle : undefined,
+          };
         });
       const nextLayout = persisted.layout.filter((entry) =>
         survivingIds.has(entry.i),
@@ -160,6 +166,15 @@ export function useDashboard(): DashboardApi {
     );
   }, []);
 
+  const updateItemMeta = useCallback(
+    (id: string, patch: { title?: string; subtitle?: string }) => {
+      setItems((prev) =>
+        prev.map((item) => (item.id === id ? { ...item, ...patch } : item)),
+      );
+    },
+    [],
+  );
+
   const onLayoutChange = useCallback((next: Layout) => {
     setLayout(next.map((entry) => ({ ...entry })));
   }, []);
@@ -182,6 +197,7 @@ export function useDashboard(): DashboardApi {
     toggleLock,
     isLocked,
     updateConfig,
+    updateItemMeta,
     onLayoutChange,
     resetDashboard,
   };

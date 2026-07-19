@@ -29,6 +29,7 @@ export function Dashboard() {
     toggleLock,
     isLocked,
     updateConfig,
+    updateItemMeta,
     onLayoutChange,
     resetDashboard,
   } = dashboard;
@@ -136,6 +137,7 @@ export function Dashboard() {
                     toast(`${definition.name} removed`);
                   }}
                   onUpdateConfig={(patch) => updateConfig(item.id, patch)}
+                  onUpdateMeta={(patch) => updateItemMeta(item.id, patch)}
                 />
               );
             })}

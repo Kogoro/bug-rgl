@@ -120,6 +120,13 @@ export interface DashboardItem {
   readonly id: string;
   /** References {@link WidgetDefinition.type}. */
   readonly type: string;
+  /**
+   * Optional frame-level title. When set, the widget shows a header/title bar in
+   * view mode; when empty, the header is hidden outside of edit mode.
+   */
+  readonly title?: string;
+  /** Optional frame-level subtitle, shown under the title when a title is set. */
+  readonly subtitle?: string;
   /** Instance configuration (shape owned by the widget definition). */
   readonly config: unknown;
 }
