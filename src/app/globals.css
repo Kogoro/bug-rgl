@@ -137,3 +137,11 @@
   width: 22px;
   height: 22px;
 }
+
+/* On-brand drop placeholder shown while dragging/resizing (overrides the
+   library default red box). */
+.react-grid-item.react-grid-placeholder {
+  background: var(--primary);
+  opacity: 0.12;
+  border-radius: 0.75rem;
+}

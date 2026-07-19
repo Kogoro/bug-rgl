@@ -27,7 +27,7 @@ function ChartWidget({ config, updateConfig }: WidgetContext<ChartConfig>) {
             title={String(value)}
           >
             <div
-              className="w-full rounded-t-sm bg-primary/80 transition-[height] duration-500 ease-out"
+              className="w-full rounded-t-sm bg-[var(--chart-1)] transition-[height] duration-500 ease-out"
               style={{ height: `${Math.max(2, (value / max) * 100)}%` }}
             />
           </div>
