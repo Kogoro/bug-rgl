@@ -19,16 +19,16 @@ function ChartWidget({ config, updateConfig }: WidgetContext<ChartConfig>) {
 
   return (
     <div className="flex h-full flex-col gap-2">
-      <div className="flex min-h-0 flex-1 items-end gap-1.5">
+      <div className="flex min-h-0 flex-1 items-stretch gap-1.5">
         {config.data.map((value, index) => (
           <div
             key={index}
-            className="flex flex-1 flex-col items-center justify-end gap-1"
+            className="flex h-full flex-1 flex-col justify-end"
             title={String(value)}
           >
             <div
               className="w-full rounded-t-sm bg-primary/80 transition-[height] duration-500 ease-out"
-              style={{ height: `${(value / max) * 100}%` }}
+              style={{ height: `${Math.max(2, (value / max) * 100)}%` }}
             />
           </div>
         ))}
