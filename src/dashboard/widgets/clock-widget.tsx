@@ -2,8 +2,6 @@
 
 import { Clock } from "lucide-react";
 
-import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
 import { useNow } from "../use-now";
 import { defineWidget, type WidgetContext } from "../types";
 
@@ -12,7 +10,7 @@ interface ClockConfig {
   showSeconds: boolean;
 }
 
-function ClockWidget({ config, isEditing, updateConfig }: WidgetContext<ClockConfig>) {
+function ClockWidget({ config }: WidgetContext<ClockConfig>) {
   // `null` during SSR/first paint; ticks every second on the client.
   const now = useNow();
 
@@ -34,31 +32,6 @@ function ClockWidget({ config, isEditing, updateConfig }: WidgetContext<ClockCon
         {time ?? "--:--"}
       </span>
       <span className="text-sm text-muted-foreground">{date ?? "\u00a0"}</span>
-
-      {isEditing && (
-        <div className="no-drag mt-3 flex flex-col gap-2 text-left">
-          <div className="flex items-center justify-between gap-3">
-            <Label htmlFor="clock-24h" className="text-xs">
-              24-hour
-            </Label>
-            <Switch
-              id="clock-24h"
-              checked={!config.hour12}
-              onCheckedChange={(checked) => updateConfig({ hour12: !checked })}
-            />
-          </div>
-          <div className="flex items-center justify-between gap-3">
-            <Label htmlFor="clock-seconds" className="text-xs">
-              Show seconds
-            </Label>
-            <Switch
-              id="clock-seconds"
-              checked={config.showSeconds}
-              onCheckedChange={(checked) => updateConfig({ showSeconds: checked })}
-            />
-          </div>
-        </div>
-      )}
     </div>
   );
 }
@@ -71,6 +44,15 @@ export const clockWidget = defineWidget<ClockConfig>({
   defaultSize: { w: 3, h: 4, minW: 2, minH: 3 },
   defaultConfig: { hour12: false, showSeconds: true },
   component: ClockWidget,
+  configSchema: [
+    {
+      key: "hour12",
+      label: "12-hour clock",
+      description: "Show AM/PM instead of 24-hour time.",
+      type: "boolean",
+    },
+    { key: "showSeconds", label: "Show seconds", type: "boolean" },
+  ],
   migrateConfig: (raw) => {
     const value = (raw ?? {}) as Partial<ClockConfig>;
     return {

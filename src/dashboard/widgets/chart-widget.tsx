@@ -5,7 +5,13 @@ import { BarChart3, Shuffle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { defineWidget, type WidgetContext } from "../types";
 
+/** Allowed bar colors (map to theme chart tokens). */
+const CHART_COLORS = ["chart-1", "chart-2", "chart-3", "chart-4", "chart-5"] as const;
+type ChartColor = (typeof CHART_COLORS)[number];
+
 interface ChartConfig {
+  title: string;
+  color: ChartColor;
   /** Bar values; rendered as a simple, dependency-free bar chart. */
   data: number[];
 }
@@ -19,6 +25,11 @@ function ChartWidget({ config, updateConfig }: WidgetContext<ChartConfig>) {
 
   return (
     <div className="flex h-full flex-col gap-2">
+      {config.title && (
+        <span className="text-sm font-medium text-muted-foreground">
+          {config.title}
+        </span>
+      )}
       <div className="flex min-h-0 flex-1 items-stretch gap-1.5">
         {config.data.map((value, index) => (
           <div
@@ -27,8 +38,11 @@ function ChartWidget({ config, updateConfig }: WidgetContext<ChartConfig>) {
             title={String(value)}
           >
             <div
-              className="w-full rounded-t-sm bg-[var(--chart-1)] transition-[height] duration-500 ease-out"
-              style={{ height: `${Math.max(2, (value / max) * 100)}%` }}
+              className="w-full rounded-t-sm transition-[height] duration-500 ease-out"
+              style={{
+                height: `${Math.max(2, (value / max) * 100)}%`,
+                backgroundColor: `var(--${config.color})`,
+              }}
             />
           </div>
         ))}
@@ -49,16 +63,42 @@ function ChartWidget({ config, updateConfig }: WidgetContext<ChartConfig>) {
 export const chartWidget = defineWidget<ChartConfig>({
   type: "chart",
   name: "Bar chart",
-  description: "A lightweight bar chart with randomizable data.",
+  description: "A lightweight bar chart. Set a title and color in settings.",
   icon: BarChart3,
   defaultSize: { w: 6, h: 5, minW: 3, minH: 4 },
-  defaultConfig: { data: [42, 65, 38, 74, 55, 88, 47] },
+  defaultConfig: {
+    title: "Weekly traffic",
+    color: "chart-1",
+    data: [42, 65, 38, 74, 55, 88, 47],
+  },
   component: ChartWidget,
+  configSchema: [
+    { key: "title", label: "Title", type: "text", placeholder: "Chart title" },
+    {
+      key: "color",
+      label: "Bar color",
+      type: "select",
+      options: [
+        { label: "Orange", value: "chart-1" },
+        { label: "Teal", value: "chart-2" },
+        { label: "Blue", value: "chart-3" },
+        { label: "Amber", value: "chart-4" },
+        { label: "Green", value: "chart-5" },
+      ],
+    },
+  ],
   migrateConfig: (raw) => {
     const value = (raw ?? {}) as Partial<ChartConfig>;
     const data = Array.isArray(value.data)
       ? value.data.filter((n): n is number => Number.isFinite(n))
       : [];
-    return { data: data.length > 0 ? data : randomSeries() };
+    const color = CHART_COLORS.includes(value.color as ChartColor)
+      ? (value.color as ChartColor)
+      : "chart-1";
+    return {
+      title: typeof value.title === "string" ? value.title : "Bar chart",
+      color,
+      data: data.length > 0 ? data : randomSeries(),
+    };
   },
 });

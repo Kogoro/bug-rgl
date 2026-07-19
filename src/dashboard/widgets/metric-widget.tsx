@@ -2,8 +2,6 @@
 
 import { ArrowDownRight, ArrowUpRight, Gauge } from "lucide-react";
 
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { defineWidget, type WidgetContext } from "../types";
 
@@ -15,62 +13,7 @@ interface MetricConfig {
   delta: number;
 }
 
-function MetricWidget({ config, isEditing, updateConfig }: WidgetContext<MetricConfig>) {
-  if (isEditing) {
-    return (
-      <div className="no-drag flex h-full flex-col justify-center gap-2">
-        <div className="grid gap-1">
-          <Label htmlFor="metric-label" className="text-xs">
-            Label
-          </Label>
-          <Input
-            id="metric-label"
-            value={config.label}
-            onChange={(event) => updateConfig({ label: event.target.value })}
-          />
-        </div>
-        <div className="grid grid-cols-2 gap-2">
-          <div className="grid gap-1">
-            <Label htmlFor="metric-value" className="text-xs">
-              Value
-            </Label>
-            <Input
-              id="metric-value"
-              type="number"
-              value={config.value}
-              onChange={(event) =>
-                updateConfig({ value: Number(event.target.value) || 0 })
-              }
-            />
-          </div>
-          <div className="grid gap-1">
-            <Label htmlFor="metric-unit" className="text-xs">
-              Unit
-            </Label>
-            <Input
-              id="metric-unit"
-              value={config.unit}
-              onChange={(event) => updateConfig({ unit: event.target.value })}
-            />
-          </div>
-        </div>
-        <div className="grid gap-1">
-          <Label htmlFor="metric-delta" className="text-xs">
-            Delta %
-          </Label>
-          <Input
-            id="metric-delta"
-            type="number"
-            value={config.delta}
-            onChange={(event) =>
-              updateConfig({ delta: Number(event.target.value) || 0 })
-            }
-          />
-        </div>
-      </div>
-    );
-  }
-
+function MetricWidget({ config }: WidgetContext<MetricConfig>) {
   const positive = config.delta >= 0;
   const DeltaIcon = positive ? ArrowUpRight : ArrowDownRight;
 
@@ -105,11 +48,17 @@ function MetricWidget({ config, isEditing, updateConfig }: WidgetContext<MetricC
 export const metricWidget = defineWidget<MetricConfig>({
   type: "metric",
   name: "Metric",
-  description: "A KPI card with a value and trend. Editable in edit mode.",
+  description: "A KPI card with a value and trend. Configurable via settings.",
   icon: Gauge,
   defaultSize: { w: 3, h: 3, minW: 2, minH: 3 },
   defaultConfig: { label: "Revenue", value: 12840, unit: "$", delta: 12.5 },
   component: MetricWidget,
+  configSchema: [
+    { key: "label", label: "Label", type: "text", placeholder: "e.g. Revenue" },
+    { key: "value", label: "Value", type: "number" },
+    { key: "unit", label: "Unit", type: "text", placeholder: "e.g. $, %, ms" },
+    { key: "delta", label: "Delta (%)", type: "number", step: 0.1 },
+  ],
   migrateConfig: (raw) => {
     const value = (raw ?? {}) as Partial<MetricConfig>;
     return {
