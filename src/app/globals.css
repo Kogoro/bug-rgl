@@ -130,3 +130,10 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Make the react-grid-layout resize handle a bit larger and easier to grab.
+   It is only shown when an item is resizable (edit mode). */
+.react-grid-item > .react-resizable-handle {
+  width: 22px;
+  height: 22px;
+}
