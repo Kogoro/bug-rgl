@@ -10,7 +10,6 @@ const CHART_COLORS = ["chart-1", "chart-2", "chart-3", "chart-4", "chart-5"] as 
 type ChartColor = (typeof CHART_COLORS)[number];
 
 interface ChartConfig {
-  title: string;
   color: ChartColor;
   /** Bar values; rendered as a simple, dependency-free bar chart. */
   data: number[];
@@ -25,11 +24,6 @@ function ChartWidget({ config, updateConfig }: WidgetContext<ChartConfig>) {
 
   return (
     <div className="flex h-full flex-col gap-2">
-      {config.title && (
-        <span className="text-sm font-medium text-muted-foreground">
-          {config.title}
-        </span>
-      )}
       <div className="flex min-h-0 flex-1 items-stretch gap-1.5">
         {config.data.map((value, index) => (
           <div
@@ -67,13 +61,11 @@ export const chartWidget = defineWidget<ChartConfig>({
   icon: BarChart3,
   defaultSize: { w: 6, h: 5, minW: 3, minH: 4 },
   defaultConfig: {
-    title: "Weekly traffic",
     color: "chart-1",
     data: [42, 65, 38, 74, 55, 88, 47],
   },
   component: ChartWidget,
   configSchema: [
-    { key: "title", label: "Title", type: "text", placeholder: "Chart title" },
     {
       key: "color",
       label: "Bar color",
@@ -96,7 +88,6 @@ export const chartWidget = defineWidget<ChartConfig>({
       ? (value.color as ChartColor)
       : "chart-1";
     return {
-      title: typeof value.title === "string" ? value.title : "Bar chart",
       color,
       data: data.length > 0 ? data : randomSeries(),
     };
